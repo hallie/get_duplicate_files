@@ -5,7 +5,7 @@ sys.setrecursionlimit(MAX_RECURSION_LIMIT) # Necessary...
 ###
 # @function getAllFilesOfEqualSize
 # @param {string} mypath - The relative path to the root directory.
-# @param {opt={}} equal_sizes - The dictionary holding all of the sizes.
+# @param {opt={}} equal_size_exts - The dictionary holding all of the size_exts.
 #   The key is the size, and the value is an array with all of the paths
 #   to files of that size.
 # @param {opt=[]} potential_dupes - List of all keys where there is more
@@ -23,20 +23,18 @@ def getAllFilesOfEqualSize(mypath, equal_sizes = {}, potential_dupe = []):
         # Checks to see if the current path points to a file.
         if (os.path.isfile(current_path)):
             # Gets the extension of the current file.
-            #ext = os.path.splitext(current_path)[1].lower()
-            # Checks if the file is a bitmap file.
-            #if (ext == ".bmp"):
+            ext = os.path.splitext(current_path)[1].lower()
             # Stringifies the file size.
-            size = str(os.path.getsize(current_path))
+            size_ext = "{}-{}".format(str(os.path.getsize(current_path)), ext)
             # Adds the file to the list located at that size key.
-            if (size in equal_sizes):
-                equal_sizes[size].append(current_path)
+            if (size_ext in equal_sizes):
+                equal_sizes[size_ext].append(current_path)
                 # If the length of this list at this value is two, add the
                 #  key to the potential_dupe list.
-                if (len(equal_sizes[size]) == 2):
-                    potential_dupe.append(size)
+                if (len(equal_sizes[size_ext]) == 2):
+                    potential_dupe.append(size_ext)
             else:
-                equal_sizes[size] = [current_path]
+                equal_sizes[size_ext] = [current_path]
         # If the path points to a directory, run getAllFilesOfEqualSize on it.
         else:
             equal_sizes, potential_dupe = getAllFilesOfEqualSize(current_path,
@@ -108,8 +106,10 @@ def getDupes(mypath):
     all_dupes = []
     # Iterates through the potential_dupe list.
     for pd in potential_dupe:
+        # Gets the size from the key.
+        img_size = int(pd.split('-')[0])
         # Runs compareImages on the list at that key.
-        duplicates = compareImages(equal_sizes[pd], int(pd))
+        duplicates = compareImages(equal_sizes[pd], img_size)
         # Appends it to the list of duplicates if something is returned.
         if (len(duplicates) > 0):
             all_dupes.append(duplicates)
